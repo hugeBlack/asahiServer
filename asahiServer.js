@@ -1,9 +1,13 @@
 const { error } = require('console');
 const fixedMsg = {
-    NoPrmission: "Permission denied."
+    NoPrmission: "Permission denied.",
+    pleaseWait:"Please wait..."
 };
 var fs = require('fs')
 var ws = require("ws");
+var http = require('http');
+var xml2js = require('xml2js');
+var xmlParser = new xml2js.Parser({explicitArray: false});
 var opList = []
 var appData={};
 var previousPics=[];
@@ -232,6 +236,31 @@ function xpzs(token){
                     default:
                         sendMsgCmd(msgObj, cmsg("Unknow app subcommand."));
                 }
+                break;
+            case "aqi":
+                sendMsgCmd(msgObj,cmsg(fixedMsg.pleaseWait));
+                http.get("http://www.stateair.net/web/post/1/4a.xml",function(data){
+                    var str="";
+                    data.on("data",function(chunk){
+                        str+=chunk;//监听数据响应，拼接数据片段
+                    })
+                    data.on("end",function(){
+                        xmlParser.parseString(str.toString(),function(error,aqiObj){
+                            var aqiValue=aqiObj.chart.dataset[1].set[23].$.value;
+                            sendMsgCmd(msgObj,cmsg(`Done! The latest AQI for ${aqiObj.chart.datetime.$.latestvalue} is ${aqiValue}, which means "${AQIMeanings(aqiValue)}". The data came from the Shanghai U.S. Consulate.`));
+                            function AQIMeanings(aqiValue){
+                                if(aqiValue<=50){return "一级（优）"}
+                                if(aqiValue<=100){return "二级（良）"}
+                                if(aqiValue<=150){return "三级（轻度污染）"}
+                                if(aqiValue<=200){return "四级（中度污染）"}
+                                if(aqiValue<=300){return "五级（重度污染）"}
+                                return "六级（严重污染）";
+                            }
+                        })
+                        
+                        
+                    })
+                })
                 break;
             default:
                 sendMsgCmd(msgObj, cmsg("Unknow app."));
