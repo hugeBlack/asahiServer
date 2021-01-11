@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "node",
+            "runtimeExecutable": "node",
+            "program": "${workspaceFolder}/xpzServer.js",
+            "restart": true,
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        }
+    ]
+}
