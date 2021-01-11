@@ -7,6 +7,7 @@ var ws = require("ws");
 var opList = []
 var appData={};
 var previousPics=[];
+var runtime=0;
 fs.readFile("opList.json", function (error, data) {
     opList = JSON.parse(data.toString())
     fs.readFile("appdata.json", function (error, data) {
@@ -16,6 +17,7 @@ fs.readFile("opList.json", function (error, data) {
         })
     })
 })
+var timer=setInterval(function(){runtime++},1000)
 
 function xpzs(token){
     console.log(opList);
@@ -96,6 +98,16 @@ function xpzs(token){
                         break;
                     case "!!app":
                         appCmdHandler(cmdObj, msgObj);
+                        break;
+                    case "!!status":
+                        var t=runtime
+                        var day =Math.floor(t/86400);
+                        t=t % 86400
+                        var hour = Math.floor(t/3600);
+                        t=t%3600;
+                        var min = Math.floor(t/60);
+                        var second = t%60;
+                        sendMsgCmd(msgObj, cmsg(`Asahi has been up and running for ${day}d ${hour}h ${min}m ${second}s.`));
                         break;
                     default:
                         sendMsgCmd(msgObj, cmsg("Unknow command"));

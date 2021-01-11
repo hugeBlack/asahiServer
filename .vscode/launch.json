@@ -5,7 +5,7 @@
             "request": "launch",
             "name": "node",
             "runtimeExecutable": "node",
-            "program": "${workspaceFolder}/xpzServer.js",
+            "program": "${workspaceFolder}/asahiServer.js",
             "restart": true,
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
