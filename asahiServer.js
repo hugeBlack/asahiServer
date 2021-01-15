@@ -272,9 +272,26 @@ function xpzs(token){
             var rawMsgArr = msgObj.message.split(",");
             if (rawMsgArr[0] == "[CQ:image") {
                 var picName=(rawMsgArr[1].split("=")[1]).split(".")[0];
+                var picUrl=(rawMsgArr[2].split("=")[1]);
                 if (appData.data.remover.forbidlist.indexOf(picName) != -1) {
-                    sendMsgCmd(msgObj, cmsg("Illegal picture detected."));
+                    sendMsgCmd(msgObj, cmsg("Illegal picture detected(FL)."));
                     issue("delete_msg",{message_id:msgObj.message_id})
+                }else{
+                    var reg = new RegExp( '/' , "g" )
+                    http.get("http://127.0.0.1:5000/fr/"+picUrl.replace(reg,"!"),function(data){
+                        var str="";
+                        data.on("data", function (chunk) {
+                            str += chunk;//监听数据响应，拼接数据片段
+                        })
+                        data.on("end",function(){
+                            if(str=="true"){
+                                sendMsgCmd(msgObj, cmsg("Illegal picture detected(FR)."));
+                                issue("delete_msg",{message_id:msgObj.message_id})
+                                appData.data.remover.forbidlist.push(picName);
+                                saveAppdata();
+                            }
+                        })
+                    })
                 }
                 if(previousPics.length>=10){
                     var t=previousPics;
