@@ -1,7 +1,8 @@
 const { error } = require('console');
 const fixedMsg = {
     NoPrmission: "Permission denied.",
-    pleaseWait:"Please wait..."
+    pleaseWait:"Please wait...",
+    illegalFL:"Illegal picture detected(FL)."
 };
 var fs = require('fs')
 var ws = require("ws");
@@ -199,6 +200,12 @@ function xpzs(token){
                                     appData.data.remover.forbidlist.push(cmdObj[3]);
                                     saveAppdata();
                                     sendMsgCmd(msgObj, cmsg("Added pic "+cmdObj[3]+" to forbid list."));
+                                    previousPics.forEach(function(pic){
+                                        if(inList(appData.data.remover.forbidlist,pic.id)){
+                                            sendMsgCmd(msgObj, cmsg(fixedMsg.illegalFL));
+                                            issue("delete_msg",{message_id:pic.id})
+                                        }
+                                    })
                                 }else{
                                     sendMsgCmd(msgObj, cmsg("Invalid pic name."));
                                 }
@@ -226,8 +233,8 @@ function xpzs(token){
                         case "get":
                             if(msgObj.message_type=="private"){
                                 sendMsgCmd(msgObj, cmsg("previous 10 recorded pictures:"));
-                                previousPics.forEach(function (picName) {
-                                    sendMsgCmd(msgObj, `${picName}\r\n[CQ:image,file=${picName}.image]`);
+                                previousPics.forEach(function (pic) {
+                                    sendMsgCmd(msgObj, `${pic.name}\r\n[CQ:image,file=${pic.name}.image]`);
                                 })
                             }else{
                                 sendMsgCmd(msgObj, cmsg("This subcommand can be used in private chat only."));
@@ -274,7 +281,7 @@ function xpzs(token){
                 var picName=(rawMsgArr[1].split("=")[1]).split(".")[0];
                 var picUrl=(rawMsgArr[2].split("=")[1]);
                 if (appData.data.remover.forbidlist.indexOf(picName) != -1) {
-                    sendMsgCmd(msgObj, cmsg("Illegal picture detected(FL)."));
+                    sendMsgCmd(msgObj, cmsg(fixedMsg.illegalFL));
                     issue("delete_msg",{message_id:msgObj.message_id})
                 }else{
                     var reg = new RegExp( '/' , "g" )
@@ -295,10 +302,10 @@ function xpzs(token){
                 }
                 if(previousPics.length>=10){
                     var t=previousPics;
-                    previousPics=[picName];
+                    previousPics=[{name:picName,id:msgObj.message_id}];
                     previousPics.concat(t.splice(0,9));
                 }else{
-                    previousPics.push(picName);
+                    previousPics.push({name:picName,id:msgObj.message_id});
                 }
             }
         }
