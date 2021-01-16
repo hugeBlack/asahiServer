@@ -201,7 +201,7 @@ function xpzs(token){
                                     saveAppdata();
                                     sendMsgCmd(msgObj, cmsg("Added pic "+cmdObj[3]+" to forbid list."));
                                     previousPics.forEach(function(pic){
-                                        if(inList(appData.data.remover.forbidlist,pic.id)){
+                                        if(cmdOjb[3]==pic.name){
                                             sendMsgCmd(msgObj, cmsg(fixedMsg.illegalFL));
                                             issue("delete_msg",{message_id:pic.id})
                                         }
