@@ -8,7 +8,8 @@ var fs = require('fs')
 var ws = require("ws");
 const apps ={ 
     remover:require('./apps/remover'),
-    aqi:require('./apps/aqi')
+    aqi:require('./apps/aqi'),
+    countdown:require('./apps/countdown')
 }
 const general = require('./apps/general');
 global.opList = []
@@ -24,8 +25,6 @@ fs.readFile("opList.json", function (error, data) {
         })
     })
 })
-var timer=setInterval(function(){runtime++},1000)
-
 function xpzs(token){
     console.log(opList);
     // url ws://127.0.0.1:6700
@@ -134,6 +133,9 @@ function xpzs(token){
             case "aqi":
                 apps.aqi.onCmd(msgObj);
                 break;
+            case "countdown":
+                apps.countdown.onCmd(msgObj,cmdObj);
+                break;
             default:
                 sendMsgCmd(msgObj, cmsg("未知app."));
         }
@@ -144,5 +146,13 @@ function xpzs(token){
             apps.remover.onMsg(msgObj);
         }
     }
+    var timer=setInterval(
+        function(){
+            runtime++;
+            var timeNow=new Date();
+            if(appData.status.remover&& timeNow.getHours()==5&&timeNow.getMinutes()==0&&timeNow.getSeconds()==0){
+                apps.countdown.onSecond(timeNow);
+            }
+        },1000)
     
 }

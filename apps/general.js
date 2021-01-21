@@ -23,11 +23,11 @@ global.cmsg = function (msg) {
 }
 global.inList = function (list, item) {
     try {
-        list.forEach(element => {
-            if (item == element) throw new error(true);
+        list.forEach(function(element,i){
+            if (item == element) throw new error(i);
         });
     } catch (e) {
-        return true;
+        return i.message;
     }
     return false;
 }
