@@ -1,23 +1,25 @@
-const { error } = require('console');
-const fixedMsg = {
-    NoPrmission: "Permission denied.",
-    pleaseWait:"Please wait...",
-    illegalFL:"Illegal picture detected(FL)."
+
+global.fixedMsg = {
+    NoPrmission: "权限不足.",
+    pleaseWait:"请稍后...",
+    illegalFL:"检测到非法图片(FL)."
 };
 var fs = require('fs')
 var ws = require("ws");
-var http = require('http');
-var xml2js = require('xml2js');
-var xmlParser = new xml2js.Parser({explicitArray: false});
-var opList = []
-var appData={};
-var previousPics=[];
-var runtime=0;
+const apps ={ 
+    remover:require('./apps/remover'),
+    aqi:require('./apps/aqi')
+}
+const general = require('./apps/general');
+global.opList = []
+global.appData={};
+global.runtime=0;
 fs.readFile("opList.json", function (error, data) {
     opList = JSON.parse(data.toString())
     fs.readFile("appdata.json", function (error, data) {
         appData = JSON.parse(data.toString())
         fs.readFile("token.json", function (error, data) {
+            global.token=data.toString()
             xpzs(data.toString());
         })
     })
@@ -27,7 +29,7 @@ var timer=setInterval(function(){runtime++},1000)
 function xpzs(token){
     console.log(opList);
     // url ws://127.0.0.1:6700
-    var sock = new ws(`ws://127.0.0.1:6700?access_token=${token}`);
+    global.sock = new ws(`ws://127.0.0.1:6700?access_token=${token}`);
     sock.on("open", function () {
         console.log("connect success !!!!");
         //issue("send_private_msg",{user_id:2910255499,message:"1919810"});
@@ -39,6 +41,7 @@ function xpzs(token){
 
     sock.on("close", function () {
         console.log("close");
+        process.exit(1);
     });
 
     sock.on("message", function (data) {
@@ -56,12 +59,12 @@ function xpzs(token){
                             var newOp = parseInt(cmdObj[1])
                             if (newOp + "" == cmdObj[1]) {
                                 if (hasPermimsion(newOp)) {
-                                    sendMsgCmd(msgObj, cmsg(newOp + " has already been an operator."));
+                                    sendMsgCmd(msgObj, cmsg(newOp + "已经是管理员了."));
                                 } else {
                                     opList.push(newOp);
                                     fs.writeFile("opList.json", JSON.stringify(opList), function (err) {
                                         if (!err) {
-                                            sendMsgCmd(msgObj, cmsg(newOp + " has been promoted."));
+                                            sendMsgCmd(msgObj, cmsg(newOp + "被提升了."));
                                         } else {
                                             sendMsgCmd(msgObj, cmsg("There's sth wrong with fs."));
                                         }
@@ -69,7 +72,7 @@ function xpzs(token){
 
                                 }
                             } else {
-                                sendMsgCmd(msgObj, cmsg("User_id invalid."));
+                                sendMsgCmd(msgObj, cmsg("QQ号无效."));
                             }
                             //sendMsgCmd(msgObj,cmsg("passed"));
                         } else {
@@ -81,12 +84,12 @@ function xpzs(token){
                             var newOp = parseInt(cmdObj[1])
                             if (newOp + "" == cmdObj[1]) {
                                 if (!hasPermimsion(newOp)) {
-                                    sendMsgCmd(msgObj, cmsg(newOp + " is not an operator."));
+                                    sendMsgCmd(msgObj, cmsg(newOp + "并不是不是管理员."));
                                 } else {
                                     opList.splice(opList.indexOf(newOp), 1);
                                     fs.writeFile("opList.json", JSON.stringify(opList), function (err) {
                                         if (!err) {
-                                            sendMsgCmd(msgObj, cmsg(newOp + " has been deomoted."));
+                                            sendMsgCmd(msgObj, cmsg(newOp + "被降级了."));
                                         } else {
                                             sendMsgCmd(msgObj, cmsg("There's sth wrong with fs."));
                                         }
@@ -94,7 +97,7 @@ function xpzs(token){
 
                                 }
                             } else {
-                                sendMsgCmd(msgObj, cmsg("User_id invalid."));
+                                sendMsgCmd(msgObj, cmsg("QQ号无效."));
                             }
                             //sendMsgCmd(msgObj,cmsg("passed"));
                         } else {
@@ -112,209 +115,34 @@ function xpzs(token){
                         t=t%3600;
                         var min = Math.floor(t/60);
                         var second = t%60;
-                        sendMsgCmd(msgObj, cmsg(`Asahi has been up and running for ${day}d ${hour}h ${min}m ${second}s.`));
+                        sendMsgCmd(msgObj, cmsg(`Asahi已经运行了${day!=0?day+"天":""}${hour!=0?hour+"小时":""}${min!=0?min+"分钟":""}${second}秒.`));
                         break;
                     default:
-                        sendMsgCmd(msgObj, cmsg("Unknow command"));
+                        sendMsgCmd(msgObj, cmsg("未知指令"));
                 }
             } else {
                 if(msgObj.message){appHandler(msgObj);}
             }
         }
     });
-    function issue(command, args) {
-        sock.send(JSON.stringify({
-            action: command,
-            params: args
-        }
-        ))
-    }
-    function sendMsgCmd(msgObj, msg,t) {
-        if(t){
-            switch(t) {
-                case "p":
-                    issue("send_private_msg", { user_id: msgObj.sender.user_id, message: msg });
-                    break;
-                case "g":
-                    issue("send_group_msg", { group_id: msgObj.group_id, message: msg });
-            }
-            return;
-        }
-        switch (msgObj.message_type) {
-            case "private":
-                issue("send_private_msg", { user_id: msgObj.sender.user_id, message: msg });
-                break;
-            case "group":
-                issue("send_group_msg", { group_id: msgObj.group_id, message: msg });
-        }
-    }
-    function cmsg(msg) {
-        return "Asahi > " + msg;
-    }
-    function inList(list, item) {
-        try {
-            list.forEach(element => {
-                if (item == element) throw new error(true);
-            });
-        } catch (e) {
-            return true;
-        }
-        return false;
-    }
-    function hasPermimsion(userId) {
-        return inList(opList, userId);
-    }
 
     function appCmdHandler(cmdObj, msgObj) {
         switch (cmdObj[1]) {
             case "remover":
-                switch (cmdObj[2]) {
-                    case "enable":
-                        if (hasPermimsion(msgObj.user_id)) {
-                            appData.status.remover = true;
-                            saveAppdata();
-                            sendMsgCmd(msgObj, cmsg("remover enabled."));
-                        } else {
-                            sendMsgCmd(msgObj, cmsg(fixedMsg.NoPrmission));
-                        }
-                        break;
-                    case "disable":
-                        if (hasPermimsion(msgObj.user_id)) {
-                            appData.status.remover = false;
-                            saveAppdata();
-                            sendMsgCmd(msgObj, cmsg("remover disabled."));
-                        } else {
-                            sendMsgCmd(msgObj, cmsg(fixedMsg.NoPrmission));
-                        }
-                        break;
-                    case "list":
-                        if (hasPermimsion(msgObj.user_id)) {
-                            sendMsgCmd(msgObj, cmsg(JSON.stringify(appData.data.remover.forbidlist)));
-                        } else {
-                            sendMsgCmd(msgObj, cmsg(fixedMsg.NoPrmission));
-                        }
-                        break;
-                        case "add":
-                            if (hasPermimsion(msgObj.user_id)) {
-                                if(cmdObj[3] && cmdObj[3]!=""){
-                                    appData.data.remover.forbidlist.push(cmdObj[3]);
-                                    saveAppdata();
-                                    sendMsgCmd(msgObj, cmsg("Added pic "+cmdObj[3]+" to forbid list."));
-                                    previousPics.forEach(function(pic){
-                                        if(cmdObj[3]==pic.name){
-                                            sendMsgCmd(msgObj, cmsg(fixedMsg.illegalFL));
-                                            issue("delete_msg",{message_id:pic.id})
-                                        }
-                                    })
-                                }else{
-                                    sendMsgCmd(msgObj, cmsg("Invalid pic name."));
-                                }
-                            } else {
-                                sendMsgCmd(msgObj, cmsg(fixedMsg.NoPrmission));
-                            }
-                            break;
-                    case "remove":
-                        if (hasPermimsion(msgObj.user_id)) {
-                            if (cmdObj[3] && cmdObj[3] != "") {
-                                if(inList(appData.data.remover.forbidlist,cmdObj[3])){
-                                    appData.data.remover.forbidlist.splice(appData.data.remover.forbidlist.indexOf(cmdObj[3]),1);
-                                    saveAppdata();
-                                    sendMsgCmd(msgObj, cmsg("Removed pic " + cmdObj[3] + " from forbid list."));
-                                }else{
-                                    sendMsgCmd(msgObj, cmsg("Pic name has already been off the forbid list."));
-                                }
-                            }else{
-                                sendMsgCmd(msgObj, cmsg("Invalid pic name."));
-                            }
-                        } else {
-                            sendMsgCmd(msgObj, cmsg(fixedMsg.NoPrmission));
-                        }
-                        break;
-                        case "get":
-                            if(msgObj.message_type=="private"){
-                                sendMsgCmd(msgObj, cmsg("previous 10 recorded pictures:"));
-                                previousPics.forEach(function (pic) {
-                                    sendMsgCmd(msgObj, `${pic.name}\r\n[CQ:image,file=${pic.name}.image]`);
-                                })
-                            }else{
-                                sendMsgCmd(msgObj, cmsg("This subcommand can be used in private chat only."));
-                            }
-                        break;
-                    default:
-                        sendMsgCmd(msgObj, cmsg("Unknow app subcommand."));
-                }
+                apps.remover.onCmd(cmdObj,msgObj);
                 break;
             case "aqi":
-                sendMsgCmd(msgObj,cmsg(fixedMsg.pleaseWait));
-                http.get("http://www.stateair.net/web/post/1/4a.xml",function(data){
-                    var str="";
-                    data.on("data",function(chunk){
-                        str+=chunk;//监听数据响应，拼接数据片段
-                    })
-                    data.on("end",function(){
-                        xmlParser.parseString(str.toString(),function(error,aqiObj){
-                            var aqiValue=aqiObj.chart.dataset[1].set[23].$.value;
-                            sendMsgCmd(msgObj,cmsg(`Done! The latest AQI for ${aqiObj.chart.datetime.$.latestvalue} is ${aqiValue}, which means "${AQIMeanings(aqiValue)}". The data came from the Shanghai U.S. Consulate.`));
-                            function AQIMeanings(aqiValue){
-                                if(aqiValue<=50){return "一级（优）"}
-                                if(aqiValue<=100){return "二级（良）"}
-                                if(aqiValue<=150){return "三级（轻度污染）"}
-                                if(aqiValue<=200){return "四级（中度污染）"}
-                                if(aqiValue<=300){return "五级（重度污染）"}
-                                return "六级（严重污染）";
-                            }
-                        })
-                        
-                        
-                    })
-                })
+                apps.aqi.onCmd(msgObj);
                 break;
             default:
-                sendMsgCmd(msgObj, cmsg("Unknow app."));
+                sendMsgCmd(msgObj, cmsg("未知app."));
         }
     }
     function appHandler(msgObj) {
         //remover
         if (appData.status.remover) {
-            var rawMsgArr = msgObj.message.split(",");
-            if (rawMsgArr[0] == "[CQ:image") {
-                var picName=(rawMsgArr[1].split("=")[1]).split(".")[0];
-                var picUrl=(rawMsgArr[2].split("=")[1]);
-                if (appData.data.remover.forbidlist.indexOf(picName) != -1) {
-                    sendMsgCmd(msgObj, cmsg(fixedMsg.illegalFL));
-                    issue("delete_msg",{message_id:msgObj.message_id})
-                }else{
-                    var reg = new RegExp( '/' , "g" )
-                    http.get("http://127.0.0.1:5000/fr/"+picUrl.replace(reg,"!"),function(data){
-                        var str="";
-                        data.on("data", function (chunk) {
-                            str += chunk;//监听数据响应，拼接数据片段
-                        })
-                        data.on("end",function(){
-                            if(str=="true"){
-                                sendMsgCmd(msgObj, cmsg("Illegal picture detected(FR)."));
-                                issue("delete_msg",{message_id:msgObj.message_id})
-                                appData.data.remover.forbidlist.push(picName);
-                                saveAppdata();
-                            }
-                        })
-                    })
-                }
-                if(previousPics.length>=10){
-                    var t=previousPics;
-                    previousPics=[{name:picName,id:msgObj.message_id}];
-                    previousPics.concat(t.splice(0,9));
-                }else{
-                    previousPics.push({name:picName,id:msgObj.message_id});
-                }
-            }
+            apps.remover.onMsg(msgObj);
         }
     }
-    function saveAppdata(){
-        fs.writeFile("appData.json", JSON.stringify(appData), function (err) {
-            if (err) {
-                sendMsgCmd(msgObj, cmsg("There's sth wrong with fs."));
-            }
-        });
-    }
+    
 }
