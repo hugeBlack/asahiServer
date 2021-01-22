@@ -24,10 +24,10 @@ global.cmsg = function (msg) {
 global.inList = function (list, item) {
     try {
         list.forEach(function(element,i){
-            if (item == element) throw new error(i);
+            if (item == element) throw new i;
         });
     } catch (e) {
-        return i.message;
+        return e;
     }
     return false;
 }

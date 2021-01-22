@@ -40,13 +40,8 @@ module.exports.onCmd=function(msgObj,cmdObj){
                 sendMsgCmd(msgObj, cmsg(`目标日 ${cmdObj[3]} 不存在.`));
             }
             break;
-        case "list":
-            var i = inList(appData.data.countdown, cmdObj[3])
-            if (i) {
-                appData.data.countdown.splice(i, 1);
-                sendMsgCmd(msgObj, cmsg(`已移除目标日 ${cmdObj[3]}.`));
-                saveAppdata();
-            }
+        case "test":
+            module.exports.onSecond(new Date())
             break;
         default:
             sendMsgCmd(msgObj, cmsg(`子指令无效.`));
@@ -56,11 +51,41 @@ module.exports.onCmd=function(msgObj,cmdObj){
 }
 module.exports.onSecond=function(timeNow){
     timeNow.setHours(0,0,0,0);
+    var tragetMap=new Map();
     appData.data.countdown.forEach(function(element){
         var daysLeft=(element.date-timeNow/1000)/86400;
-        var msgObj={message_type:"group",group_id:element.group}
-        if(daysLeft>0){
-            sendMsgCmd(msgObj, cmsg(`哈~早上好~今天是距离${element.name}还有${daysLeft}天的一天呢.`));
-        }
+        if(!tragetMap.get(element.group)){tragetMap.set(element.group,[])}
+        tragetMap.get(element.group).push({name:element.name,days:daysLeft})
+    })
+    tragetMap.forEach(function(dayObjList,group){
+        var msg="哈~早上好~今天是:";
+        var dayForward=[];
+        var dayNow=[];
+        dayObjList.forEach(function(dayObj,index){
+            if(dayObj.days>0){
+                dayForward.push(dayObj)
+            }else if(dayObj.days==0){
+                dayNow.push(dayObj)
+            }
+        })
+        var forwardMsg='';
+        dayForward.forEach(function(dayObj,i){
+            forwardMsg+=`距离${dayObj.name}还有${dayObj.days}天`;
+            if(i<dayForward.length-1){
+                forwardMsg+=",";
+            }
+        })
+        var nowMsg='';
+        dayNow.forEach(function(dayObj,i){
+            nowMsg+=dayObj.name;
+            if(i<dayNow.length-1){
+                nowMsg+=",";
+            }else{
+                nowMsg+=",也是\r\n"
+            }
+        })
+        msg+=nowMsg+forwardMsg+"的一天呢.";
+        var msgObj={message_type:"group",group_id:group}
+        sendMsgCmd(msgObj,cmsg(msg));
     })
 }

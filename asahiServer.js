@@ -1,4 +1,4 @@
-
+var debug=false;
 global.fixedMsg = {
     NoPrmission: "权限不足.",
     pleaseWait:"请稍后...",
@@ -46,7 +46,13 @@ function xpzs(token){
     sock.on("message", function (data) {
         var msgObj = JSON.parse(data);
         if (msgObj.meta_event_type != "heartbeat") {
-            console.log(data);
+            if(debug){
+                console.log(data);
+            }else{
+                if(msgObj.user_id){
+                    console.log(`${msgObj.user_id}(${msgObj.sender.nickname}) in ${msgObj.group_id} : ${msgObj.message}`);
+                }
+            }
             if (msgObj.message && msgObj.message.substr(0, 2) == "!!") {
                 var cmdObj = msgObj.message.split(" ");
                 switch (cmdObj[0]) {
@@ -106,6 +112,16 @@ function xpzs(token){
                     case "!!app":
                         appCmdHandler(cmdObj, msgObj);
                         break;
+                    case "!!reload":
+                        if (hasPermimsion(msgObj.user_id)) {
+                            fs.readFile("appdata.json", function (error, data) {
+                                appData = JSON.parse(data.toString());
+                                sendMsgCmd(msgObj,cmsg("重新加载完成"));
+                            })
+                        }else{
+                            sendMsgCmd(msgObj, cmsg(fixedMsg.NoPrmission));
+                        }
+                        break;
                     case "!!status":
                         var t=runtime
                         var day =Math.floor(t/86400);
@@ -150,7 +166,7 @@ function xpzs(token){
         function(){
             runtime++;
             var timeNow=new Date();
-            if(appData.status.remover&& timeNow.getHours()==5&&timeNow.getMinutes()==0&&timeNow.getSeconds()==0){
+            if(appData.status.remover&& timeNow.getHours()==6&&timeNow.getMinutes()==0&&timeNow.getSeconds()==0){
                 apps.countdown.onSecond(timeNow);
             }
         },1000)
