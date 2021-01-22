@@ -40,7 +40,7 @@ module.exports.onCmd=function(msgObj,cmdObj){
                 sendMsgCmd(msgObj, cmsg(`目标日 ${cmdObj[3]} 不存在.`));
             }
             break;
-        case "test":
+        case "lookup":
             module.exports.onSecond(new Date())
             break;
         default:

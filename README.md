@@ -1,3 +1,3 @@
 # asahiServer
 
-印度服机器人Asahi Chan
+印度服机器人AsahiServer
