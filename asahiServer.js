@@ -49,7 +49,7 @@ function xpzs(token){
             if(debug){
                 console.log(data);
             }else{
-                if(msgObj.user_id){
+                if(msgObj.user_id&&msgObj.sender){
                     console.log(`${msgObj.user_id}(${msgObj.sender.nickname}) in ${msgObj.group_id} : ${msgObj.message}`);
                 }
             }
