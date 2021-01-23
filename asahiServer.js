@@ -1,11 +1,13 @@
 var debug=false;
+var debugToken="";
 global.fixedMsg = {
     NoPrmission: "权限不足.",
     pleaseWait:"请稍后...",
     illegalFL:"检测到非法图片(FL)."
 };
-var fs = require('fs')
-var ws = require("ws");
+const fs = require('fs')
+const ws = require("ws");
+const readline = require('readline')
 const apps ={ 
     remover:require('./apps/remover'),
     aqi:require('./apps/aqi'),
@@ -15,27 +17,35 @@ const general = require('./apps/general');
 global.opList = []
 global.appData={};
 global.runtime=0;
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
 fs.readFile("opList.json", function (error, data) {
-    opList = JSON.parse(data.toString())
+    if(data){opList = JSON.parse(data.toString())}
     fs.readFile("appdata.json", function (error, data) {
-        appData = JSON.parse(data.toString())
-        fs.readFile("token.json", function (error, data) {
-            global.token=data.toString()
-            xpzs(data.toString());
+        if(data){appData = JSON.parse(data.toString())}
+        rl.question("Input accessToken:",function(ans){
+            if(debug){
+                console.log("Using debugToken, please make sure to remove it before release.")
+                global.token=debugToken;
+            }else{
+                global.token=ans;
+            }
+            asahi(token);
         })
-    })
+    })        
 })
-function xpzs(token){
-    console.log(opList);
-    // url ws://127.0.0.1:6700
-    global.sock = new ws(`ws://127.0.0.1:6700?access_token=${token}`);
+function asahi(token){
+    console.log("Op List: "+opList);
+    global.sock = new ws(`ws://127.0.0.1:6700?access_token=${token}`); 
     sock.on("open", function () {
-        console.log("connect success !!!!");
-        //issue("send_private_msg",{user_id:2910255499,message:"1919810"});
+        console.log("connect success !");
     });
 
     sock.on("error", function (err) {
         console.log("error: ", err);
+        console.error("connect failed: Did you input the right accessToken? Or, did you start CQ?");
     });
 
     sock.on("close", function () {
