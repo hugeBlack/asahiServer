@@ -31,6 +31,7 @@ fs.readFile("opList.json", function (error, data) {
                 global.token=debugToken;
             }else{
                 global.token=ans;
+                //process.stdout.write('\033[0f');
             }
             asahi(token);
         })
@@ -176,7 +177,7 @@ function asahi(token){
         function(){
             runtime++;
             var timeNow=new Date();
-            if(appData.status.remover&& timeNow.getHours()==6&&timeNow.getMinutes()==0&&timeNow.getSeconds()==0){
+            if(appData.status.remover&& timeNow.getHours()==6&&timeNow.getMinutes()==30&&timeNow.getSeconds()==0){
                 apps.countdown.onSecond(timeNow);
             }
         },1000)

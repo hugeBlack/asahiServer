@@ -124,7 +124,7 @@ module.exports.onMsg = function (msgObj) {
             issue("delete_msg", { message_id: msgObj.message_id })
         } else {
             var reg = new RegExp('/', "g")
-            http.get("http://127.0.0.1:5000/fr/" + picUrl.replace(reg, "!"), function (data) {
+            var req=http.get("http://127.0.0.1:5000/fr/" + picUrl.replace(reg, "!"), function (data) {
                 var str = "";
                 data.on("data", function (chunk) {
                     str += chunk;//监听数据响应，拼接数据片段
@@ -137,6 +137,9 @@ module.exports.onMsg = function (msgObj) {
                         saveAppdata();
                     }
                 })
+            })
+            req.on("error",function(e){
+                    errorlog(e)
             })
         }
         if (previousPics.length >= 15) {

@@ -48,3 +48,6 @@ global.saveAppdata=function(){
         }
     });
 }
+global.errorlog=function(log){
+    issue("send_private_msg", { user_id: opList[0], message: "Asahi > "+log });
+}
