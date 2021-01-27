@@ -31,7 +31,7 @@ fs.readFile("opList.json", function (error, data) {
                 global.token=debugToken;
             }else{
                 global.token=ans;
-                //process.stdout.write('\033[0f');
+                process.stdout.write('\033[0f');
             }
             asahi(token);
         })
