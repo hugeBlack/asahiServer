@@ -1,0 +1,27 @@
+module.exports.onCmd= function(msgObj,cmdObj){
+    var c = 0;
+    if(cmdObj[2]){
+        c = parseInt(cmdObj[2])-1;
+    }
+    if(c<=4 && c>=0 && flashImgList[c]){
+        sendMsgCmd(msgObj, cmsg(`闪照:${flashImgList[c]}:\r\n[CQ:image,file=${flashImgList[c]}]`));
+    }else{
+        sendMsgCmd(msgObj, cmsg("图片索引无效."));
+    }
+}
+
+module.exports.onMsg= function(msgObj){
+    var msgObj= readCqMsg(msgObj.message)
+    if(msgObj.type=="image"&&msgObj.data.get("type")=="flash"){
+        console.warn(msgObj.data.file)
+        addNew(msgObj.data.get("file"));
+    }
+}
+
+var flashImgList=[];
+function addNew(img){
+    if(flashImgList.length>5){
+        flashImgList.splice(0,1);
+    }
+    flashImgList=[img].concat(flashImgList);
+}

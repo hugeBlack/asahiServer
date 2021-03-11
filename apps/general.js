@@ -51,3 +51,18 @@ global.saveAppdata=function(){
 global.errorlog=function(log){
     issue("send_private_msg", { user_id: opList[0], message: "Asahi > "+log });
 }
+
+global.readCqMsg=function(cqMsg){
+    var msgList=cqMsg.split(/,/g);
+    var first = true
+    var returnObj={type:msgList[0].substring(4),data:new Map()};
+    for(d in msgList){
+        if(first){
+            first=false;
+            continue;
+        }
+        a=msgList[d].split(/=/g);
+        returnObj.data.set(a[0],d==msgList.length-1?a[1].substring(0,a[1].length-1):a[1]);
+    }
+    return returnObj;
+}

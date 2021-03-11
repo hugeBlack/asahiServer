@@ -11,7 +11,8 @@ const readline = require('readline')
 const apps ={ 
     remover:require('./apps/remover'),
     aqi:require('./apps/aqi'),
-    countdown:require('./apps/countdown')
+    countdown:require('./apps/countdown'),
+    flashimg:require('./apps/getFlashImg')
 }
 const general = require('./apps/general');
 global.opList = []
@@ -162,6 +163,9 @@ function asahi(token){
             case "countdown":
                 apps.countdown.onCmd(msgObj,cmdObj);
                 break;
+            case "getflashimg":
+                apps.flashimg.onCmd(msgObj,cmdObj);
+                break;
             default:
                 sendMsgCmd(msgObj, cmsg("未知app."));
         }
@@ -171,6 +175,7 @@ function asahi(token){
         if (appData.status.remover) {
             apps.remover.onMsg(msgObj);
         }
+        apps.flashimg.onMsg(msgObj);
     }
     var timer=setInterval(
         function(){
