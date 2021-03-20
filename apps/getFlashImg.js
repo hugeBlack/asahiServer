@@ -24,7 +24,7 @@ module.exports.onCmd= function(msgObj,cmdObj){
 module.exports.onMsg= function(msgObj){
     var msgObj= readCqMsg(msgObj.message)
     if(msgObj.type=="image"&&msgObj.data.get("type")=="flash"){
-        sendMsgCmd(msgObj, cmsg(`闪照:${flashImgList[c]}`));
+        sendMsgCmd(msgObj, cmsg(`索引:${msgObj.data.get("file")}`));
         addNew(msgObj.data.get("file"));
     }
 }
