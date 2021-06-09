@@ -52,7 +52,7 @@ function check(forceCheck, msgObj) {
         today = timeNow.getDate();
         checked = false;
     }
-    var address = `http://www.shmeea.edu.cn/page/24300/${timeNow.getFullYear()}${timeNow.getMonth()+1 > 10 ?(timeNow.getMonth()+1) : "0" + (timeNow.getMonth()+1)}${timeNow.getDate() > 10 ?timeNow.getDate() : "0" + timeNow.getDate()}`
+    var address = `http://202.121.151.68/page/24300/${timeNow.getFullYear()}${timeNow.getMonth()+1 > 10 ?(timeNow.getMonth()+1) : "0" + (timeNow.getMonth()+1)}${timeNow.getDate() > 10 ?timeNow.getDate() : "0" + timeNow.getDate()}`
     http.get(address, function (data) {
         var str = "";
         data.on("data", function (chunk) {
