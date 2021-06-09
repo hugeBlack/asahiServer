@@ -84,6 +84,9 @@ module.exports.onSecond=function(timeNow){
                 nowMsg+=",也是\r\n"
             }
         })
+        if(nowMsg==""){
+            nowMsg+="没有任何倒计时"
+        }
         msg+=nowMsg+forwardMsg+"的一天呢.";
         var msgObj={message_type:"group",group_id:group}
         sendMsgCmd(msgObj,cmsg(msg));
