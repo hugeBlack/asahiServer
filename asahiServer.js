@@ -12,7 +12,8 @@ const apps ={
     remover:require('./apps/remover'),
     aqi:require('./apps/aqi'),
     countdown:require('./apps/countdown'),
-    flashimg:require('./apps/getFlashImg')
+    flashimg:require('./apps/getFlashImg'),
+    shmeea:require("./apps/shmeea")
 }
 const general = require('./apps/general');
 global.opList = []
@@ -166,6 +167,9 @@ function asahi(token){
             case "getflashimg":
                 apps.flashimg.onCmd(msgObj,cmdObj);
                 break;
+            case "shmeea":
+                apps.shmeea.onCmd(msgObj,cmdObj);
+                break;
             default:
                 sendMsgCmd(msgObj, cmsg("未知app."));
         }
@@ -183,6 +187,9 @@ function asahi(token){
             var timeNow=new Date();
             if(appData.status.remover&& timeNow.getHours()==6&&timeNow.getMinutes()==30&&timeNow.getSeconds()==0){
                 apps.countdown.onSecond(timeNow);
+            }
+            if(timeNow.getMinutes()%3==0&&timeNow.getSeconds()==0){
+                apps.shmeea.onInterval();
             }
         },1000)
     
